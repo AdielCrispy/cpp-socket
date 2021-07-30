@@ -7,6 +7,7 @@ namespace socks {
 	* 
 	* @param sock_type Communication protocol i.e. UDP/TCP.
 	* @param ip_type IPV4/IPV6.
+	* @param copy_sock Optional socket to use instead of creating a new one.
 	* 
 	*/
 	socket::socket(const sock_type& sock_type, const ip_type& ip_type, SOCKET copy_sock) {
@@ -95,6 +96,14 @@ namespace socks {
 		}
 	}
 	
+	/**
+	* 
+	* Bind a server socket to a given host and port.
+	* 
+	* @param connection_string An std::pair where the first element is the IP
+	* and the second element is the port.
+	* 
+	*/
 	void socket::bind(const std::pair<std::string, int>& connection_string) {
 		std::string ip = connection_string.first;
 		int port = connection_string.second;
@@ -132,6 +141,13 @@ namespace socks {
 		}
 	}
 
+	/**
+	* 
+	* Setup server socket to listen after bind. Set maximum backlog.
+	* 
+	* @param max_backlog The maximum number of connections to keep in connection queue.
+	* 
+	*/
 	void socket::listen(const unsigned int& max_backlog) {
 		if (::listen(sock, max_backlog) == SOCKET_ERROR) {
 			close();
@@ -140,6 +156,13 @@ namespace socks {
 		}
 	}
 
+	/**
+	* 
+	* Accept a new connection.
+	* 
+	* @return client socket through which communication with client can continue.
+	* 
+	*/
 	socket socket::accept() {
 		SOCKET client_sock = INVALID_SOCKET;
 
@@ -150,6 +173,7 @@ namespace socks {
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 		
+		// Building client socket from WinAPI socket.
 		return socket(hints.ai_protocol == IPPROTO_TCP ? sock_type::TCP : sock_type::UDP,
 					  hints.ai_family == AF_INET ? ip_type::V4 : ip_type::V6,
 					  client_sock
