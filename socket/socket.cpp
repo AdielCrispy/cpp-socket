@@ -160,7 +160,7 @@ namespace socks {
 	* 
 	* Accept a new connection.
 	* 
-	* @return client socket through which communication with client can continue.
+	* @return std::pair containing client's socket object, and information about client's address.
 	* 
 	*/
 	std::pair<socket, sock_addr_info> socket::accept() {
@@ -169,6 +169,8 @@ namespace socks {
 		int addr_size = sizeof(client_addr);
 		sock_addr_info client_addr_info;
 
+		memset(&client_addr_info, NULL, sizeof(sock_addr_info));
+
 		// Accept a client socket.
 		client_sock = ::accept(sock, &client_addr, &addr_size);
 		if (client_sock == INVALID_SOCKET) {
@@ -176,13 +178,15 @@ namespace socks {
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 		
-		if (client_addr.sa_family == AF_INET) {
-			struct sockaddr_in* client_info_ipv4 = (struct sockaddr_in*)&client_addr;
-			inet_ntop(AF_INET, &client_info_ipv4->sin_addr, client_addr_info.addr, INET_ADDRSTRLEN);
-		}
-		else if (client_addr.sa_family == AF_INET6) {
-			struct sockaddr_in6* client_info_ipv6 = (struct sockaddr_in6*)&client_addr;
-			inet_ntop(AF_INET6, &client_info_ipv6->sin6_addr, client_addr_info.addr, INET6_ADDRSTRLEN);
+		if (addr_size != 0) {
+			if (client_addr.sa_family == AF_INET) {
+				struct sockaddr_in* client_info_ipv4 = (struct sockaddr_in*)&client_addr;
+				inet_ntop(AF_INET, &client_info_ipv4->sin_addr, client_addr_info.addr, INET_ADDRSTRLEN);
+			}
+			else if (client_addr.sa_family == AF_INET6) {
+				struct sockaddr_in6* client_info_ipv6 = (struct sockaddr_in6*)&client_addr;
+				inet_ntop(AF_INET6, &client_info_ipv6->sin6_addr, client_addr_info.addr, INET6_ADDRSTRLEN);
+			}
 		}
 
 		// Building client socket from WinAPI socket.
