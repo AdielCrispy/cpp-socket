@@ -3,7 +3,6 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <exception>
-#include <stdio.h>
 #include <utility>
 #include <string>
 #include <memory>
