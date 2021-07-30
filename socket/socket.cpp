@@ -163,21 +163,35 @@ namespace socks {
 	* @return client socket through which communication with client can continue.
 	* 
 	*/
-	socket socket::accept() {
+	std::pair<socket, sock_addr_info> socket::accept() {
 		SOCKET client_sock = INVALID_SOCKET;
+		struct sockaddr client_addr;
+		int addr_size = sizeof(client_addr);
+		sock_addr_info client_addr_info;
 
 		// Accept a client socket.
-		client_sock = ::accept(sock, NULL, NULL);
+		client_sock = ::accept(sock, &client_addr, &addr_size);
 		if (client_sock == INVALID_SOCKET) {
 			int err = WSAGetLastError();
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 		
+		if (client_addr.sa_family == AF_INET) {
+			struct sockaddr_in* client_info_ipv4 = (struct sockaddr_in*)&client_addr;
+			inet_ntop(AF_INET, &client_info_ipv4->sin_addr, client_addr_info.addr, INET_ADDRSTRLEN);
+		}
+		else if (client_addr.sa_family == AF_INET6) {
+			struct sockaddr_in6* client_info_ipv6 = (struct sockaddr_in6*)&client_addr;
+			inet_ntop(AF_INET6, &client_info_ipv6->sin6_addr, client_addr_info.addr, INET6_ADDRSTRLEN);
+		}
+
 		// Building client socket from WinAPI socket.
-		return socket(hints.ai_protocol == IPPROTO_TCP ? sock_type::TCP : sock_type::UDP,
-					  hints.ai_family == AF_INET ? ip_type::V4 : ip_type::V6,
-					  client_sock
-			   );
+		return { 
+				socket(hints.ai_protocol == IPPROTO_TCP ? sock_type::TCP : sock_type::UDP,
+				hints.ai_family == AF_INET ? ip_type::V4 : ip_type::V6,
+				client_sock),
+				client_addr_info
+		};
 	}
 
 	/**
