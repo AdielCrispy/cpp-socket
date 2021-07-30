@@ -11,8 +11,6 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-
-
 // 🧦
 namespace socks{
 	enum class sock_type { TCP, UDP };
@@ -36,7 +34,6 @@ namespace socks{
 		struct addrinfo hints;
 
 		std::string get_winsock_error(const int& err_code);
-		struct addrinfo build_hints();
 
 	};
 }
