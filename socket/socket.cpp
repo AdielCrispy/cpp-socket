@@ -28,14 +28,11 @@ namespace socks {
 
 		// Checking IP family.
 		switch (i_type) {
-			case ip_type::V4:
-				hints.ai_family = AF_INET;
-				break;
 			case ip_type::V6:
 				hints.ai_family = AF_INET6;
 				break;
 			default:
-				hints.ai_family = AF_UNSPEC;
+				hints.ai_family = AF_INET;
 				break;
 		}
 
@@ -94,7 +91,40 @@ namespace socks {
 	}
 	
 	void socket::bind(const std::pair<std::string, int>& connection_string) {
-		
+		std::string ip = connection_string.first;
+		int port = connection_string.second;
+
+		struct addrinfo* result = NULL;
+
+		int addr_result = getaddrinfo(ip.c_str(), std::to_string(port).c_str(), &hints, &result);
+		if (addr_result != 0) {
+			freeaddrinfo(result);
+			int err = WSAGetLastError();
+			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+		}
+
+		struct addrinfo* runner;
+		bool success = false;
+
+		// Testing all addresses returned by getaddrinfo until one binds.
+		for (runner = result; runner; runner = runner->ai_next) {
+			if (::bind(sock, runner->ai_addr, (int)runner->ai_addrlen) != SOCKET_ERROR) {
+				success = true;
+				break;
+			}
+			else {
+				int err = WSAGetLastError();
+				std::cout << "[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err) << '\n';
+			}
+		}
+
+		freeaddrinfo(result);
+
+		if (!success) {
+			close();
+			int err = WSAGetLastError();
+			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+		}
 	}
 
 	/**

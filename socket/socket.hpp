@@ -13,7 +13,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 enum class sock_type { TCP, UDP };
-enum class ip_type { V4, V6, UNSPEC };
+enum class ip_type { V4, V6 };
 
 // 🧦
 namespace socks{
