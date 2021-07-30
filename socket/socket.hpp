@@ -19,7 +19,7 @@ namespace socks{
 	class socket {
 	public:
 		socket(const sock_type& sock_type = sock_type::TCP, const ip_type& ip_type = ip_type::V4);
-		void connect(const std::pair<std::string, std::string>& connection_string);
+		void connect(const std::pair<std::string, int>& connection_string);
 		std::unique_ptr<char[]> recv(const unsigned int& buff_size, const int& flags = 0);
 		int send(const char* buff, const unsigned int& len, const int& flags = 0);
 		void close();

@@ -32,9 +32,9 @@ namespace socks {
 	* and the second element is the port.
 	* 
 	*/
-	void socket::connect(const std::pair<std::string, std::string>& connection_string) {
+	void socket::connect(const std::pair<std::string, int>& connection_string) {
 		std::string ip = connection_string.first;
-		std::string port = connection_string.second;
+		int port = connection_string.second;
 
 		struct addrinfo* result = NULL, hints;
 
@@ -56,7 +56,7 @@ namespace socks {
 		hints.ai_socktype = (s_type == sock_type::TCP) ? SOCK_STREAM : SOCK_DGRAM;
 		hints.ai_protocol = (s_type == sock_type::TCP) ? IPPROTO_TCP : IPPROTO_UDP;
 
-		int addr_result = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
+		int addr_result = getaddrinfo(ip.c_str(), std::to_string(port).c_str(), &hints, &result);
 		if (addr_result != 0) {
 			freeaddrinfo(result);
 			int err = WSAGetLastError();
