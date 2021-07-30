@@ -127,6 +127,14 @@ namespace socks {
 		}
 	}
 
+	void socket::listen(const unsigned int& max_backlog) {
+		if (::listen(sock, max_backlog) == SOCKET_ERROR) {
+			close();
+			int err = WSAGetLastError();
+			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+		}
+	}
+
 	/**
 	* Receive information from socket.
 	* 

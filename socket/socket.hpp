@@ -22,6 +22,7 @@ namespace socks{
 		socket(const sock_type& sock_type = sock_type::TCP, const ip_type& ip_type = ip_type::V4);
 		void connect(const std::pair<std::string, int>& connection_string);
 		void bind(const std::pair<std::string, int>& connection_string);
+		void listen(const unsigned int& max_backlog = SOMAXCONN);
 		std::unique_ptr<char[]> recv(const unsigned int& buff_size, const int& flags = 0);
 		int send(const char* buff, const unsigned int& len, const int& flags = 0);
 		void close();
