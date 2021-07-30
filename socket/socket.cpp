@@ -11,7 +11,7 @@ namespace socks {
 	*/
 	socket::socket(const sock_type& sock_type, const ip_type& ip_type) {
 		WSADATA wsaData;
-		int result;
+		int result, ai_family;
 		s_type = sock_type;
 		i_type = ip_type;
 
@@ -20,6 +20,29 @@ namespace socks {
 		// WSACleanup will check the counter, and cleanup when it gets to 0.
 		result = WSAStartup(MAKEWORD(2, 2), &wsaData);
 		if (result != 0) {
+			int err = WSAGetLastError();
+			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+		}
+
+		// Checking IP family.
+		switch (i_type) {
+			case ip_type::V4:
+				ai_family = AF_INET;
+				break;
+			case ip_type::V6:
+				ai_family = AF_INET6;
+				break;
+			default:
+				ai_family = AF_UNSPEC;
+				break;
+		}
+
+		sock = ::socket(ai_family,                                              // IP family.
+						s_type == sock_type::TCP ? SOCK_STREAM : SOCK_DGRAM,    // Socket type.
+						s_type == sock_type::TCP ? IPPROTO_TCP : IPPROTO_UDP    // Socket protocol.
+				);
+
+		if (sock == INVALID_SOCKET) {
 			int err = WSAGetLastError();
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
@@ -63,14 +86,6 @@ namespace socks {
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 
-		sock = ::socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-
-		if (sock == INVALID_SOCKET) {
-			freeaddrinfo(result);
-			int err = WSAGetLastError();
-			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
-		}
-
 		struct addrinfo* runner;
 		bool success = false;
 
@@ -85,12 +100,16 @@ namespace socks {
 		freeaddrinfo(result);
 		
 		if (!success) {
-			closesocket(sock);
+			close();
 			int err = WSAGetLastError();
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 	}
 	
+	void bind(const std::pair<std::string, int>& connection_string) {
+
+	}
+
 	/**
 	* Receive information from socket.
 	* 
