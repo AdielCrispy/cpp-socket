@@ -19,10 +19,11 @@ enum class ip_type { V4, V6 };
 namespace socks{
 	class socket {
 	public:
-		socket(const sock_type& sock_type = sock_type::TCP, const ip_type& ip_type = ip_type::V4);
+		socket(const sock_type& sock_type = sock_type::TCP, const ip_type& ip_type = ip_type::V4, SOCKET copy_sock = INVALID_SOCKET);
 		void connect(const std::pair<std::string, int>& connection_string);
 		void bind(const std::pair<std::string, int>& connection_string);
 		void listen(const unsigned int& max_backlog = SOMAXCONN);
+		socket accept();
 		std::unique_ptr<char[]> recv(const unsigned int& buff_size, const int& flags = 0);
 		int send(const char* buff, const unsigned int& len, const int& flags = 0);
 		void close();

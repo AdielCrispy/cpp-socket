@@ -9,7 +9,7 @@ namespace socks {
 	* @param ip_type IPV4/IPV6.
 	* 
 	*/
-	socket::socket(const sock_type& sock_type, const ip_type& ip_type) {
+	socket::socket(const sock_type& sock_type, const ip_type& ip_type, SOCKET copy_sock) {
 		WSADATA wsaData;
 		int result;
 		s_type = sock_type;
@@ -39,14 +39,19 @@ namespace socks {
 		hints.ai_socktype = (s_type == sock_type::TCP) ? SOCK_STREAM : SOCK_DGRAM;
 		hints.ai_protocol = (s_type == sock_type::TCP) ? IPPROTO_TCP : IPPROTO_UDP;
 
-		sock = ::socket(hints.ai_family,      // IP family.
-						hints.ai_socktype,    // Socket type.
-						hints.ai_protocol     // Socket protocol.
-				);
+		if (copy_sock == INVALID_SOCKET) {
+			sock = ::socket(hints.ai_family,      // IP family.
+				hints.ai_socktype,                // Socket type.
+				hints.ai_protocol                 // Socket protocol.
+			);
 
-		if (sock == INVALID_SOCKET) {
-			int err = WSAGetLastError();
-			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+			if (sock == INVALID_SOCKET) {
+				int err = WSAGetLastError();
+				throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+			}
+		}
+		else {
+			sock = copy_sock;
 		}
 	}
 
@@ -135,6 +140,22 @@ namespace socks {
 		}
 	}
 
+	socket socket::accept() {
+		SOCKET client_sock = INVALID_SOCKET;
+
+		// Accept a client socket.
+		client_sock = ::accept(sock, NULL, NULL);
+		if (client_sock == INVALID_SOCKET) {
+			int err = WSAGetLastError();
+			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+		}
+		
+		return socket(hints.ai_protocol == IPPROTO_TCP ? sock_type::TCP : sock_type::UDP,
+					  hints.ai_family == AF_INET ? ip_type::V4 : ip_type::V6,
+					  client_sock
+			   );
+	}
+
 	/**
 	* Receive information from socket.
 	* 
@@ -161,7 +182,12 @@ namespace socks {
 	* 
 	*/
 	int socket::send(const char* buff, const unsigned int& len, const int& flags) {
-		return ::send(sock, buff, len, flags);
+		int bytes_sent = 0;
+		if ((bytes_sent = ::send(sock, buff, len, flags)) == SOCKET_ERROR) {
+			int err = WSAGetLastError();
+			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+		}
+		return bytes_sent;
 	}
 
 	/**
