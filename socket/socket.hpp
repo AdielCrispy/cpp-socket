@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -15,6 +15,7 @@
 enum class sock_type { TCP, UDP };
 enum class ip_type { V4, V6, UNSPEC };
 
+// 🧦
 namespace socks{
 	class socket {
 	public:
@@ -29,8 +30,10 @@ namespace socks{
 		sock_type s_type;
 		ip_type i_type;
 		SOCKET sock;
+		struct addrinfo hints;
 
 		std::string get_winsock_error(const int& err_code);
+		struct addrinfo build_hints();
 
 	};
 }

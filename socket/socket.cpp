@@ -11,7 +11,7 @@ namespace socks {
 	*/
 	socket::socket(const sock_type& sock_type, const ip_type& ip_type) {
 		WSADATA wsaData;
-		int result, ai_family;
+		int result;
 		s_type = sock_type;
 		i_type = ip_type;
 
@@ -24,22 +24,27 @@ namespace socks {
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 
+		ZeroMemory(&hints, sizeof(hints));
+
 		// Checking IP family.
 		switch (i_type) {
 			case ip_type::V4:
-				ai_family = AF_INET;
+				hints.ai_family = AF_INET;
 				break;
 			case ip_type::V6:
-				ai_family = AF_INET6;
+				hints.ai_family = AF_INET6;
 				break;
 			default:
-				ai_family = AF_UNSPEC;
+				hints.ai_family = AF_UNSPEC;
 				break;
 		}
 
-		sock = ::socket(ai_family,                                              // IP family.
-						s_type == sock_type::TCP ? SOCK_STREAM : SOCK_DGRAM,    // Socket type.
-						s_type == sock_type::TCP ? IPPROTO_TCP : IPPROTO_UDP    // Socket protocol.
+		hints.ai_socktype = (s_type == sock_type::TCP) ? SOCK_STREAM : SOCK_DGRAM;
+		hints.ai_protocol = (s_type == sock_type::TCP) ? IPPROTO_TCP : IPPROTO_UDP;
+
+		sock = ::socket(hints.ai_family,      // IP family.
+						hints.ai_socktype,    // Socket type.
+						hints.ai_protocol     // Socket protocol.
 				);
 
 		if (sock == INVALID_SOCKET) {
@@ -59,25 +64,7 @@ namespace socks {
 		std::string ip = connection_string.first;
 		int port = connection_string.second;
 
-		struct addrinfo* result = NULL, hints;
-
-		ZeroMemory(&hints, sizeof(hints));
-
-		// Checking IP family.
-		switch (i_type) {
-		case ip_type::UNSPEC:
-			hints.ai_family = AF_UNSPEC;
-			break;
-		case ip_type::V4:
-			hints.ai_family = AF_INET;
-			break;
-		case ip_type::V6:
-			hints.ai_family = AF_INET6;
-			break;
-		}
-
-		hints.ai_socktype = (s_type == sock_type::TCP) ? SOCK_STREAM : SOCK_DGRAM;
-		hints.ai_protocol = (s_type == sock_type::TCP) ? IPPROTO_TCP : IPPROTO_UDP;
+		struct addrinfo* result = NULL;
 
 		int addr_result = getaddrinfo(ip.c_str(), std::to_string(port).c_str(), &hints, &result);
 		if (addr_result != 0) {
@@ -106,8 +93,8 @@ namespace socks {
 		}
 	}
 	
-	void bind(const std::pair<std::string, int>& connection_string) {
-
+	void socket::bind(const std::pair<std::string, int>& connection_string) {
+		
 	}
 
 	/**
