@@ -12,11 +12,13 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-enum class sock_type { TCP, UDP };
-enum class ip_type { V4, V6 };
+
 
 // 🧦
 namespace socks{
+	enum class sock_type { TCP, UDP };
+	enum class ip_type { V4, V6 };
+
 	class socket {
 	public:
 		socket(const sock_type& sock_type = sock_type::TCP, const ip_type& ip_type = ip_type::V4, SOCKET copy_sock = INVALID_SOCKET);
