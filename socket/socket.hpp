@@ -13,6 +13,7 @@
 
 // 🧦
 namespace socks{
+
 	enum class sock_type { TCP, UDP };
 	enum class ip_type { V4, V6 };
 
