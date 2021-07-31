@@ -31,6 +31,7 @@ namespace socks{
 		std::unique_ptr<char[]> recv(const unsigned int& buff_size, const int& flags = 0);
 		int send(const char* buff, const unsigned int& len, const int& flags = 0);
 		void close();
+		operator SOCKET const();
 
 	private:
 		sock_type s_type;

@@ -244,6 +244,17 @@ namespace socks {
 	}
 
 	/**
+	* 
+	* Implicit conversion operator between WinAPI socket and socks::socket.
+	* 
+	* @return socket handle stored in socket object.
+	* 
+	*/
+	socket::operator SOCKET const() {
+		return sock;
+	}
+
+	/**
 	* Get WinSock error message from error code.
 	* 
 	* @param err_code Error code to get message from.
