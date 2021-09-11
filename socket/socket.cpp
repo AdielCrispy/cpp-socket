@@ -71,8 +71,8 @@ namespace socks {
 
 		int addr_result = getaddrinfo(ip.c_str(), std::to_string(port).c_str(), &hints, &result);
 		if (addr_result != 0) {
-			freeaddrinfo(result);
 			int err = WSAGetLastError();
+			freeaddrinfo(result);
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 
@@ -90,8 +90,8 @@ namespace socks {
 		freeaddrinfo(result);
 		
 		if (!success) {
-			close();
 			int err = WSAGetLastError();
+			close();
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 	}
@@ -112,8 +112,8 @@ namespace socks {
 
 		int addr_result = getaddrinfo(ip.c_str(), std::to_string(port).c_str(), &hints, &result);
 		if (addr_result != 0) {
-			freeaddrinfo(result);
 			int err = WSAGetLastError();
+			freeaddrinfo(result);
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 
@@ -135,8 +135,8 @@ namespace socks {
 		freeaddrinfo(result);
 
 		if (!success) {
-			close();
 			int err = WSAGetLastError();
+			close();
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 	}
@@ -150,8 +150,8 @@ namespace socks {
 	*/
 	void socket::listen(const unsigned int& max_backlog) {
 		if (::listen(sock, max_backlog) == SOCKET_ERROR) {
-			close();
 			int err = WSAGetLastError();
+			close();
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 	}
