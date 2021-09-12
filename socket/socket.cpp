@@ -204,13 +204,13 @@ namespace socks {
 	* @param buff_size Size of buffer to receive data into.
 	* @param flags Flags supplied to WinAPI recv function. Default value is 0.
 	* 
-	* @return unique_ptr pointing to data received from socket.
+	* @return std::pair containing unique_ptr pointing to data received from socket, and the amount of bytes received.
 	*
 	*/
-	std::unique_ptr<char[]> socket::recv(const unsigned int& buff_size, const int& flags) {
+	std::pair<std::unique_ptr<char[]>, unsigned int> socket::recv(const unsigned int& buff_size, const int& flags) {
 		std::unique_ptr<char[]> buff = std::make_unique<char[]>(buff_size);
-		::recv(sock, buff.get(), buff_size, NULL);
-		return buff;
+		unsigned int bytes_received = ::recv(sock, buff.get(), buff_size, NULL);
+		return { std::move(buff), bytes_received };
 	}
 
 	/**
