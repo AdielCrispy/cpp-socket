@@ -182,10 +182,12 @@ namespace socks {
 			if (client_addr.sa_family == AF_INET) {
 				struct sockaddr_in* client_info_ipv4 = (struct sockaddr_in*)&client_addr;
 				inet_ntop(AF_INET, &client_info_ipv4->sin_addr, client_addr_info.addr, INET_ADDRSTRLEN);
+				client_addr_info.port = ntohs(client_info_ipv4->sin_port);
 			}
 			else if (client_addr.sa_family == AF_INET6) {
 				struct sockaddr_in6* client_info_ipv6 = (struct sockaddr_in6*)&client_addr;
 				inet_ntop(AF_INET6, &client_info_ipv6->sin6_addr, client_addr_info.addr, INET6_ADDRSTRLEN);
+				client_addr_info.port = ntohs(client_info_ipv6->sin6_port);
 			}
 		}
 
