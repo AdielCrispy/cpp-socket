@@ -201,7 +201,7 @@ namespace socks {
 	}
 
 	/**
-	* Receive information from socket.
+	* Receive information from socket (TCP).
 	* 
 	* @param buff_size Size of buffer to receive data into.
 	* @param flags Flags supplied to WinAPI recv function. Default value is 0.
@@ -213,6 +213,44 @@ namespace socks {
 		std::unique_ptr<char[]> buff = std::make_unique<char[]>(buff_size);
 		unsigned int bytes_received = ::recv(sock, buff.get(), buff_size, NULL);
 		return { std::move(buff), bytes_received };
+	}
+
+	/**
+	* Receive information from socket (UDP).
+	*
+	* @param buff_size Size of buffer to receive data into.
+	* @param flags Flags supplied to WinAPI recv function. Default value is 0.
+	*
+	* @return std::tuple containing unique_ptr pointing to data received from socket, the amount of bytes received and source's information.
+	*
+	*/
+	std::tuple<std::unique_ptr<char[]>, unsigned int, sock_addr_info> socket::recvfrom(const unsigned int& buff_size, const int& flags) {
+		std::unique_ptr<char[]> buff = std::make_unique<char[]>(buff_size);
+		struct sockaddr src_addr;
+		int src_buff_size = sizeof(src_addr.sa_data);
+		sock_addr_info src_info;
+
+		ZeroMemory(&src_addr, sizeof(src_addr));
+
+		int bytes_received = ::recvfrom(sock, buff.get(), buff_size, flags, (sockaddr*)&(src_addr.sa_data), &src_buff_size);
+		if (bytes_received == SOCKET_ERROR) {
+			int err = WSAGetLastError();
+			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+		}
+		
+		// Getting source's information from struct.
+		if (i_type == ip_type::V4) {
+			struct sockaddr_in* client_info_ipv4 = (struct sockaddr_in*)&src_addr;
+			inet_ntop(AF_INET, &client_info_ipv4->sin_addr, src_info.addr, INET_ADDRSTRLEN);
+			src_info.port = ntohs(client_info_ipv4->sin_port);
+		}
+		else if (i_type == ip_type::V6) {
+			struct sockaddr_in6* client_info_ipv6 = (struct sockaddr_in6*)&src_addr;
+			inet_ntop(AF_INET6, &client_info_ipv6->sin6_addr, src_info.addr, INET6_ADDRSTRLEN);
+			src_info.port = ntohs(client_info_ipv6->sin6_port);
+		}
+
+		return { std::move(buff), bytes_received, src_info };
 	}
 
 	/**

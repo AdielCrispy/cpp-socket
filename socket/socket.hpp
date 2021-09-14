@@ -8,6 +8,7 @@
 #include <memory>
 #include <iostream>
 #include <string>
+#include <tuple>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -30,6 +31,7 @@ namespace socks{
 		void listen(const unsigned int& max_backlog = SOMAXCONN);
 		std::pair<socket, sock_addr_info> accept();
 		std::pair<std::unique_ptr<char[]>, unsigned int> recv(const unsigned int& buff_size, const int& flags = 0);
+		std::tuple<std::unique_ptr<char[]>, unsigned int, sock_addr_info> recvfrom(const unsigned int& buff_size, const int& flags = 0);
 		int send(const char* buff, const unsigned int& len, const int& flags = 0);
 		void close();
 		operator SOCKET const();
