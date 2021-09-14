@@ -211,7 +211,13 @@ namespace socks {
 	*/
 	std::pair<std::unique_ptr<char[]>, unsigned int> socket::recv(const unsigned int& buff_size, const int& flags) {
 		std::unique_ptr<char[]> buff = std::make_unique<char[]>(buff_size);
-		unsigned int bytes_received = ::recv(sock, buff.get(), buff_size, NULL);
+		
+		int bytes_received = ::recv(sock, buff.get(), buff_size, NULL);
+		if (bytes_received == SOCKET_ERROR) {
+			int err = WSAGetLastError();
+			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+		}
+		
 		return { std::move(buff), bytes_received };
 	}
 
