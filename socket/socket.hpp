@@ -33,6 +33,7 @@ namespace socks{
 		std::pair<std::unique_ptr<char[]>, unsigned int> recv(const unsigned int& buff_size, const int& flags = 0);
 		std::tuple<std::unique_ptr<char[]>, unsigned int, sock_addr_info> recvfrom(const unsigned int& buff_size, const int& flags = 0);
 		int send(const char* buff, const unsigned int& len, const int& flags = 0);
+		int sendto(const char* buff, const unsigned int& len, const sock_addr_info& addr, const int& flags = 0);
 		void close();
 		operator SOCKET const();
 

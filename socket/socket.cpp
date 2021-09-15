@@ -260,7 +260,7 @@ namespace socks {
 	}
 
 	/**
-	* Send information through socket.
+	* Send information through socket (TCP).
 	* 
 	* @param buff The data to send through socket.
 	* @param len The length of the supplied data.
@@ -276,6 +276,52 @@ namespace socks {
 			throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
 		}
 		return bytes_sent;
+	}
+
+	/**
+	* Send information through socket (UDP).
+	*
+	* @param buff The data to send through socket.
+	* @param len The length of the supplied data.
+	* @param addr Address struct containing the destination address and port.
+	* @param flags Flags supplied to WinAPI send function. Default value is 0.
+	*
+	* @return number of bytes sent.
+	*
+	*/
+	int socket::sendto(const char* buff, const unsigned int& len, const sock_addr_info& addr, const int& flags) {
+		struct sockaddr_storage* addr_to_send = nullptr;
+		struct sockaddr_in sock_info4;
+		struct sockaddr_in6 sock_info6;
+		
+		// Check IP type.
+		if (i_type == ip_type::V4) {
+			ZeroMemory(&sock_info4, sizeof(sock_info4));
+			sock_info4.sin_port = htons(addr.port);
+			sock_info4.sin_family = AF_INET;
+			inet_pton(AF_INET, addr.addr, &sock_info4.sin_addr);
+			addr_to_send = (struct sockaddr_storage*)&sock_info4;
+		}
+		else if (i_type == ip_type::V6) {
+			ZeroMemory(&sock_info6, sizeof(sock_info6));
+			sock_info6.sin6_port = htons(addr.port);
+			sock_info6.sin6_family = AF_INET6;
+			sock_info6.sin6_flowinfo = 0;
+			inet_pton(AF_INET6, addr.addr, &sock_info6.sin6_addr);
+			addr_to_send = (struct sockaddr_storage*)&sock_info6;
+		}
+
+		// Making sure address struct is not null.
+		if (addr_to_send) {
+			// Sending message and checking for errors.
+			int bytes_sent = 0;
+			if ((bytes_sent = ::sendto(sock, buff, len, flags, (struct sockaddr*)addr_to_send, sizeof(struct sockaddr_storage))) == SOCKET_ERROR) {
+				int err = WSAGetLastError();
+				throw std::runtime_error("[WinError " + std::to_string(err) + "]" + ": " + get_winsock_error(err));
+			}
+			return bytes_sent;
+		}
+		throw std::runtime_error("Failed to send message. Make sure IP version is either V6 or V4.");
 	}
 
 	/**
